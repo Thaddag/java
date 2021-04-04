@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>blacklist</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/layui.css}" media="all">
+    <script th:src="@{/layui.js}"></script>
+    <script type="text/javascript" th:src="@{/jquery-3.5.1.js}"></script>
+</head>
+<body style="background-color: #F2F2F2">
+<div th:insert="~{common/commons.html::newhead}" ></div>
+<div class="layui-row" style="padding-top: 50px">
+    <div th:insert="~{common/commons.html::sidebar(active = 'blacklist')}"></div>
+    <div class="layui-col-md8 layui-col-md-offset2" style="padding-top: 50px">
+        <div class="layui-card">
+            <div class="layui-card-header">
+                <p>黑名单</p>
+            </div>
+            <div class="layui-card-body">
+                <table class="layui-table">
+                    <colgroup>
+                        <col width="100">
+                        <col width="300">
+                        <col width="100">
+                    </colgroup>
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>用户名</th>
+                        <th>操作</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="blacklist:${blacklistinfo}" th:id="'blacklist'+${blacklistStat.index+1}">
+                        <td th:text="${blacklist['touserid']}">005</td>
+                        <td th:text="${blacklist['tousername']}">小王</td>
+                        <td><div class="layui-table-cell laytable-cell-2-0-8">  <a onclick="delblacklist(this)" class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del"><i class="layui-icon layui-icon-delete"></i>移除</a>  </div></td>
+                    </tr>
+
+                    </tbody>
+                </table>
+                <div id="blackpage"></div>
+            </div>
+        </div>
+    </div>
+</div>
+    <script>
+        layui.use('element', function(){
+            var element = layui.element;
+        });
+        layui.use('laypage', function(){
+            var laypage = layui.laypage;
+
+            //执行一个laypage实例
+            laypage.render({
+                elem: 'blackpage' //注意，这里的 test1 是 ID，不用加 # 号
+                ,count: [[${blacklistcount}]] //数据总数，从服务端得到
+                ,limit:[[${blacklistinonpage}]]
+                ,jump: function(obj, first){
+                    //obj包含了当前分页的所有参数，比如：
+
+                    //console.log(obj.curr); //得到当前页，以便向服务端请求对应页的数据。
+                    //console.log(obj.limit); //得到每页显示的条数
+                    topage(1);
+                    //首次不执行
+                    if(!first){
+                        topage(obj.curr);
+                        //window.location.replace("/blog/"+[[${blogid}]]+"/page/"+obj.curr);
+                        //do something
+                    }
+                }
+            });
+        });
+        function topage(page){
+            var blacklistinonepage = [[${blacklistinonpage}]];
+            var blacklistcount = [[${blacklistcount}]];
+            var i =1;
+            for ( ;i<=blacklistcount;i++){
+                var blacklistid = "blacklist"+i;
+                if(i>(page-1)*blacklistinonepage&&i<=page*blacklistinonepage){
+                    document.getElementById(blacklistid).style.display = '';
+                }else {
+                    document.getElementById(blacklistid).style.display = 'none';
+                }
+            }
+
+        }
+        function delblacklist(obj) {
+            var userid = $(obj).parent().parent().parent().children("td").eq(0).text();
+            //console.log(userid);
+            $.ajax({
+                type: "GET",
+                url: "/delblacklist/"+userid,
+                data: {
+                },
+                success: function (data) {
+                    window.location.replace("/blacklist");
+                }
+            })
+        }
+    </script>
+</body>
+</html>

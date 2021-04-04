@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>photo</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/layui.css}" media="all">
+    <script th:src="@{/layui.js}"></script>
+    <script type="text/javascript" th:src="@{/jquery-3.5.1.js}"></script>
+
+</head>
+<body style="background-color: #F2F2F2">
+<div th:insert="~{common/commons.html::newhead}" ></div>
+<div class="layui-row" style="padding-top: 50px">
+    <div th:insert="~{common/commons.html::sidebar(active = 'myphoto.html')}"></div>
+    <div class="layui-col-md9 layui-col-md-offset2" style="padding-top: 50px">
+        <div class="layui-card">
+            <div class="layui-card-header">
+                <div class="layui-input-inline layui-btn-container" style="padding-left: 20px;width: auto;">
+                    <button type="button" class="layui-btn layui-btn-primary" id="btupload">
+                        <i class="layui-icon"></i>上传图片
+                    </button><input class="layui-upload-file" type="file" accept="" name="file">
+                </div>
+            </div>
+            <div class="layui-card-body" style="display: inline">
+                <div style="display: inline-block;width: 1200px" >
+                    <div th:each="img:${myphotos}" th:id="'photo'+${imgStat.index+1}" style="margin-top: 30px;padding: 20px;display:inline-block;width: auto">
+                        <img id="img" th:src="@{/images/{imgnumber}.jpg(imgnumber = ${img})}" width="200px" >
+                        <div>
+                            <a onclick="delphotobt(this)" class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del" style="width: 55px;display: block;margin-top: 10px"><i class="layui-icon layui-icon-delete"></i>删除</a>
+                            <div style="display: inline-flex; font-size: 3px;color: gray"><p>imgid:</p><p th:text="${img}"></p></div>
+                        </div>
+                    </div>
+
+                </div>
+                <div id="photospage"></div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    layui.use('element', function(){
+        var element = layui.element;
+    });
+    layui.use('flow', function(){
+        var flow = layui.flow;
+        //信息流
+        flow.load(options);
+
+        //图片懒加载
+        flow.lazyimg(options);
+    });
+
+    layui.use('laypage', function(){
+        var laypage = layui.laypage;
+
+        //执行一个laypage实例
+        laypage.render({
+            elem: 'photospage' //注意，这里的 test1 是 ID，不用加 # 号
+            ,count: 50 //数据总数，从服务端得到
+            ,count: [[${imgcount}]]//数据总数，从服务端得到
+            ,limit:[[${imginonepage}]]
+            ,jump: function(obj, first){
+                //obj包含了当前分页的所有参数，比如：
+
+                //console.log(obj.curr); //得到当前页，以便向服务端请求对应页的数据。
+                //console.log(obj.limit); //得到每页显示的条数
+                topage(1);
+                //首次不执行
+                if(!first){
+                    topage(obj.curr);
+                    //window.location.replace("/blog/"+[[${blogid}]]+"/page/"+obj.curr);
+                    //do something
+                }
+            }
+        });
+    });
+    layui.use('upload', function(){
+        var upload = layui.upload;
+
+        //执行实例
+        var uploadInst = upload.render({
+            elem: '#btupload' //绑定元素
+            ,url: '/uploadphoto' //上传接口
+            ,done: function(res){
+                window.location.replace("/myphoto");
+                //var jsimg = document.getElementById("img");
+                //jsimg.src = res.data[0];
+                //var s = document.getElementById("img").src;
+                //console.log(getFileName(s));
+                //上传完毕回调
+            }
+            , error: function(){
+                //请求异常回调
+            }
+
+        });
+    });
+    function topage(page){
+        var imginonepage = [[${imginonepage}]];
+        var imgcount = [[${imgcount}]];
+        var i =1;
+        for ( ;i<=imgcount;i++){
+            var imgid = "photo"+i;
+            if(i>(page-1)*imginonepage&&i<=page*imginonepage){
+                document.getElementById(imgid).style.display = 'inline-block';
+            }else {
+                document.getElementById(imgid).style.display = 'none';
+            }
+        }
+
+    }
+    function delphotobt(obj) {
+        var imgid = $(obj).parent().children("div").eq(0).children("p").eq(1).text();
+        var userid = [[${session.id}]];
+        $.ajax({
+            type: "POST",
+            url: "/delphoto",
+            data: {
+                "imgid":imgid,
+                "userid":userid
+            },
+            success: function (data) {
+                window.location.replace("/myphoto");
+            }
+        })
+
+    }
+
+</script>
+</body>
+</html>

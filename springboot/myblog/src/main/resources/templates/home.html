@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>home</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/layui.css}" media="all">
+    <script th:src="@{/layui.js}"></script>
+    <script type="text/javascript" th:src="@{/jquery-3.5.1.js}"></script>
+    <style>
+        .mlines{
+            /*width: 200px;*/
+            overflow : hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+        }
+    </style>
+</head>
+<body style="background-color: #F2F2F2">
+<div th:insert="~{common/commons.html::newhead}" ></div>
+
+    <div class="layui-row" style="padding-top: 50px;background-color: #F2F2F2">
+        <div th:insert="~{common/commons.html::sidebar(active='home.html')}"></div>
+
+        <div class="layui-col-md10 layui-row layui-col-md-offset2" style="margin-top: 50px">
+            <div class="layui-card layui-col-md4">
+                <div class="layui-card-header">用户信息</div>
+                <div class="layui-card-body">
+                    <div style="display: inline-flex"><p>用户名：</p><p th:text="${session.name}"></p></div>
+                    <div><p style="display: inline-flex">邮箱：</p><p style="display: inline-flex" th:text="${session.email}"></p></div>
+                    <p style="visibility: hidden"></p>
+                </div>
+            </div>
+            <div class="layui-col-md4 layui-card layui-col-md-offset1">
+                <div class="layui-card-header">数据</div>
+                <div class="layui-card-body">
+                    <div style="display: inline-flex"><p>发帖量：</p><p th:text="${myblogcount}"></p></div>
+                    <div><p style="display: inline-flex">入站日期：</p><p style="display: inline-flex" th:text="${entertime}"></p></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="layui-col-md8 layui-col-md-offset2">
+            <div class="layui-card">
+                <div class="layui-card-header">最新回复</div>
+                <div class="layui-card-body">
+                    <div th:each="commen:${commenlist}" th:id="'commen'+${commenStat.index+1}">
+                        <div >
+                            <p style="font-size: 3px;color: gray;display: inline-flex">commenid:</p><p th:text="${commen['commenid']}" style="font-size: 3px;color: gray;display: inline-flex"></p>
+                            <p th:text="${commen['usernameR']}+'在你的'+${commen['titleR']}+'中回复了'"></p>
+                        </div>
+                        <p class="mlines" th:utext="${commen['containR']}">回帖内容</p>
+                        <p th:text="${commen['timeR']}"></p>
+                        <button onclick="replycommentbt(this)" type="button" class="layui-btn">回复</button>
+                        <hr>
+                    </div>
+
+                    <div id="commentindex"></div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+<script th:src="@{/layui.js}" charset="utf-8"></script>
+<!-- 注意：如果你直接复制所有代码到本地，上述js路径需要改成你本地的 -->
+<script>
+    layui.use('element', function(){
+        var element = layui.element; //导航的hover效果、二级菜单等功能，需要依赖element模块
+
+        //监听导航点击
+        element.on('nav(demo)', function(elem){
+            //console.log(elem)
+            layer.msg(elem.text());
+        });
+    });
+    function topage(page){
+        var commeninonepage = [[${commeninonepage}]];
+        var commencount = [[${commensize}]];
+        var i =1;
+        for ( ;i<=commencount;i++){
+            var commenid = "commen"+i;
+            if(i>(page-1)*commeninonepage&&i<=page*commeninonepage){
+                document.getElementById(commenid).style.display = 'inline';
+            }else {
+                document.getElementById(commenid).style.display = 'none';
+            }
+        }
+
+    }
+    layui.use('laypage', function(){
+        var laypage = layui.laypage;
+
+        //执行一个laypage实例
+        laypage.render({
+            elem: 'commentindex' //注意，这里的 test1 是 ID，不用加 # 号
+            ,count: [[${commensize}]] //数据总数，从服务端得到
+            ,limit:[[${commeninonepage}]]
+            ,jump: function(obj, first){
+                //obj包含了当前分页的所有参数，比如：
+                //console.log(obj.curr); //得到当前页，以便向服务端请求对应页的数据。
+                //console.log(obj.limit); //得到每页显示的条数
+                topage(1);
+                //首次不执行
+                if(!first){
+                    topage(obj.curr);
+                    //do something
+                }
+            }
+        });
+    });
+    function replycommentbt(obj) {
+        var commenid = $(obj).parent().children("div").eq(0).children("p").eq(1).text();
+        window.location.replace("/directreply/"+commenid);
+        //console.log(commenid);
+        //var name = $(obj).parent().children("div").eq(0).children("p").eq(0).text();
+
+    };
+</script>
+</body>
+</html>

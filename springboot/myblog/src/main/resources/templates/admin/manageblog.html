@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>博客管理</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/layui.css}" media="all">
+    <script th:src="@{/layui.js}"></script>
+    <script type="text/javascript" th:src="@{/jquery-3.5.1.js}"></script>
+    <style>
+        .titlemlines{
+            /*width: 200px;*/
+            overflow : hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+    </style>
+</head>
+<body>
+<div th:insert="~{common/commons.html::managesidebar(active = 'blogmanage')}"></div>
+<div class="layui-container">
+    <div class="layui-col-md12  layui-col-md-offset1">
+        <div class="layui-card">
+            <div class="layui-col-md12" >
+                <!--一个博客显示-->
+                <div class="layui-card" style="margin-top: 30px">
+                    <div class="layui-card-header" style="display: inline-flex;height: 120px">
+                        <div>
+                            <img th:src="@{http://localhost:8080/images/{headid}.jpg(headid = ${imghead})}" style="margin-top: 10px;border-radius: 25px;height: 50px;width: 50px">
+                        </div>
+                        <div style="padding-left: 20px">
+                            <div th:text="${username}">wode名字</div>
+                            <p class="titlemlines" style="font-size: 30px" th:text="${title}">我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题</p>
+                        </div>
+                    </div>
+                    <div class="layui-card-body" th:utext="${contain}">
+                        <h3>hahahaha</h3>
+
+                    </div>
+                    <hr>
+                    <div class="layui-card-body">
+                        <p>更改标签</p>
+                        <form class="layui-form" action="">
+                            <div class="layui-form-item">
+                                <input th:each="tag:${taglist}" th:title="${tag.getTagname}" th:value="${tag.getTagid}" name="checkbox" type="checkbox" >
+
+                            </div>
+                            <div class="layui-form-item">
+                                <textarea id="editreason" class="layui-textarea" placeholder="请输入删除或修改理由"></textarea>
+                            </div>
+                            <div> <a id="btedit" class="layui-btn layui-btn-normal layui-btn-sm" lay-event="edit"><i class="layui-icon layui-icon-edit"></i>保存更改</a>  <a id="btdel" class="layui-btn layui-btn-danger layui-btn-sm" lay-event="del"><i class="layui-icon layui-icon-delete"></i>删除</a>  </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    layui.use('form',function () {
+        var form = layui.form;
+        /*监听提交数据*/
+        form.on('submit(formDemo)', function (data) {
+            layer.msg(JSON.stringify(data.field));
+            return false;
+        });
+    })
+    var tagsvalue = [[${tagsvalue}]];
+    var checkboxs = document.getElementsByName("checkbox");
+
+    for(var m=0;m<checkboxs.length;m++){
+        for(var n=0;n<tagsvalue.length;n++){
+            if(checkboxs[m].value == tagsvalue[n]){
+                checkboxs[m].checked = true;
+            }
+        }
+    }
+    document.getElementById("btedit").addEventListener('click',function () {
+        if(editreason == ''){
+            alert("请输入一个理由");
+        }else {
+            var userid = [[${userid}]];
+            var blogid = [[${blogid}]];
+            var editreason = document.getElementById("editreason").value;
+            var obj=document.getElementsByName("checkbox");
+            var array = new Array();
+            //var array =;
+            console.log(obj.length);
+
+            var j=0;
+            for(var i=0; i<obj.length; i++){
+                console.log(obj[i].title);
+                if(obj[i].checked){
+                    array[j] = obj[i].value;
+                    j++;
+                }
+            }
+            $.ajax({
+                type: "POST",
+                url: "/admin/editblog",
+                data: {
+                    "blogid":blogid,
+                    "tags":array,
+                    "userid":userid,
+                    "reason":editreason
+                },
+                success: function () {
+                    window.location.replace("/admin/bloglist");
+                }
+            })
+        }
+    })
+    document.getElementById("btdel").addEventListener('click',function () {
+        var userid = [[${userid}]];
+        var blogid = [[${blogid}]];
+        var editreason = document.getElementById("editreason").value;
+        if(editreason == ''){
+            alert("请输入一个理由");
+        }else {
+            //window.location.replace("/admin/deltblog/"+blogid);
+            $.ajax({
+                type: "POST",
+                url: "/admin/delblog",
+                data: {
+                    "blogid":blogid,
+                    "reason":editreason,
+                    "userid":userid
+                },
+                success: function () {
+                    window.location.replace("/admin/bloglist");
+                }
+            })
+        }
+    })
+</script>
+</body>
+</html>

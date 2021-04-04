@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>myblogs</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/layui.css}" media="all">
+    <script th:src="@{/layui.js}"></script>
+    <script type="text/javascript" th:src="@{/jquery-3.5.1.js}"></script>
+</head>
+<body style="background-color: #F2F2F2">
+<div th:insert="~{common/commons::managesidebar(active = 'tagmanage')}"></div>
+<div class="layui-row" style="padding-top: 50px">
+    <div class="layui-col-md8 layui-col-md-offset2" style="padding-top: 50px">
+        <div class="layui-card">
+            <div class="layui-card-header">
+                <p>标签管理</p>
+            </div>
+            <div class="layui-card-body">
+                <input id="addtagbox" class="layui-input" placeholder="添加一个标签">
+                <a id="btaddtag" style="margin-top: 10px" class="layui-btn layui-btn-sm">添加</a>
+            </div>
+            <div class="layui-card-body">
+                <table class="layui-table">
+                    <colgroup>
+                        <col width="300">
+                        <col width="200">
+                        <col width="50">
+                    </colgroup>
+                    <thead>
+                    <tr>
+                        <th>标签id</th>
+                        <th>标签名称</th>
+                        <th>操作</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="tag:${taglist}" th:id="'tag'+${tagStat.index+1}">
+                        <td th:text="${tag.getTagid}" >1</td>
+                        <td th:text="${tag.getTagname}">java</td>
+                        <td><div class="layui-table-cell laytable-cell-2-0-8">   <a th:onclick="'javascript:delphoto('+${tag.getTagid}+')' " class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del"><i class="layui-icon layui-icon-delete"></i>删除</a>  </div></td>
+                    </tr>
+
+                    </tbody>
+                </table>
+                <div id="tagspage"></div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    layui.use('laypage', function(){
+        var laypage = layui.laypage;
+
+        //执行一个laypage实例
+        laypage.render({
+            elem: 'tagspage' //注意，这里的 test1 是 ID，不用加 # 号
+            ,count: [[${taglistcount}]] //数据总数，从服务端得到
+            ,limit:[[${taginonepage}]]
+            ,jump: function(obj, first){
+                //obj包含了当前分页的所有参数，比如：
+
+                //console.log(obj.curr); //得到当前页，以便向服务端请求对应页的数据。
+                //console.log(obj.limit); //得到每页显示的条数
+                topage(1);
+                //首次不执行
+                if(!first){
+                    topage(obj.curr);
+                    //window.location.replace("/blog/"+[[${blogid}]]+"/page/"+obj.curr);
+                    //do something
+                }
+            }
+        });
+    });
+    function topage(page){
+        var taginonepage = [[${taginonepage}]];
+        var tagcount = [[${taglistcount}]];
+        var i =1;
+        for ( ;i<=tagcount;i++){
+            var tagid = "tag"+i;
+            if(i>(page-1)*taginonepage&&i<=page*taginonepage){
+                document.getElementById(tagid).style.display = '';
+            }else {
+                document.getElementById(tagid).style.display = 'none';
+            }
+        }
+
+    }
+    function delphoto(tagid) {
+        var r = confirm("确认删除标签？");
+        if (r == true){
+            $.ajax({
+                type: "POST",
+                url: "/admin/deltag",
+                data: {
+                    "tag":tagid
+                },
+                success: function (data) {
+                    window.location.replace("/admin/taglist");
+                }
+            })
+        }
+
+    }
+    document.getElementById("btaddtag").addEventListener('click',function () {
+        var tagname = document.getElementById("addtagbox").value;
+        if(tagname==''){
+            alert("请输入标签名称");
+        } else{
+            $.ajax({
+                type: "POST",
+                url: "/admin/addtag",
+                data: {
+                    "tagname":tagname
+                },
+                success: function (data) {
+                    if(data == 1){
+                        alert("已有重复标签");
+                    }else if(data == 2) window.location.replace("/admin/taglist");
+                }
+            })
+        }
+    })
+</script>
+</body>
+</html>

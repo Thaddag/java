@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>test</title>
+    <script type="text/javascript" th:src="@{/jquery-3.5.1.js}"></script>
+</head>
+<body>
+<div>
+    level1
+    <p> hello</p>
+</div>
+<div>
+    level2
+    <a type="button" onclick="get(this)" style="background-color: #00FF00"> dianwo</a>
+</div>
+<script>
+    function get(obj) {
+        console.log($(obj).text());
+        //console.log($(obj).parent().text());
+        //console.log($(obj).parent().parent().text());
+        //console.log($(obj).parent().parent().children("div").eq(0).text());
+        console.log($(obj).parent().parent().children("div").eq(0).children("p").text());
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>chat</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/layui.css}" media="all">
+    <script th:src="@{/layui.js}"></script>
+    <script type="text/javascript" th:src="@{/jquery-3.5.1.js}"></script>
+    <style>
+        .mlines{
+            /*width: 200px;*/
+            overflow : hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+        }
+    </style>
+</head>
+<body style="background-color: #F2F2F2">
+<div th:insert="~{common/commons.html::newhead}" ></div>
+<div class="layui-row" style="padding-top: 50px;height: 100%">
+    <div th:insert="~{common/commons.html::sidebar(active = chat)}"></div>
+    <div class="layui-card layui-col-md6 layui-col-md-offset3" >
+        <div class="layui-card-header">
+        私信
+        </div>
+        <div class="layui-card-body" >
+            <div th:each="chat:${chatlist}" th:id="'chat'+${chatStat.index+1}">
+                <div>
+                    <div style="display: inline-flex">
+                        <img th:src="@{/images/{imgid}.jpg(imgid = ${chat['imgid']})}" style="border-radius: 25px;height: 50px;width: 50px">
+                        <p style="padding-top: 15px;padding-left: 10px" th:text="${chat['username']}">用户名</p>
+
+                    </div>
+                    <p th:utext="${chat['contain']}" class="mlines">内容</p>
+                    <p th:text="${#temporals.format(chat['time'],'yyyy-MM-dd HH:mm:ss')}" >时间：</p>
+                </div>
+                <a th:href="@{'/chatto/'+${chat['Ruserid']}}" type="button" class="layui-btn-sm layui-btn" style="margin-right: 10px">回复</a>
+                <hr>
+            </div>
+            <div id="chatpage"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    layui.use('element', function(){
+        var element = layui.element;
+    });
+    layui.use('laypage', function(){
+        var laypage = layui.laypage;
+
+        //执行一个laypage实例
+        laypage.render({
+            elem: 'chatpage' //注意，这里的 test1 是 ID，不用加 # 号
+            ,count: [[${chatcount}]] //数据总数，从服务端得到
+            ,limit:[[${chatinonepage}]]
+            ,jump: function(obj, first){
+                //obj包含了当前分页的所有参数，比如：
+
+                //console.log(obj.curr); //得到当前页，以便向服务端请求对应页的数据。
+                //console.log(obj.limit); //得到每页显示的条数
+                topage(1);
+                //首次不执行
+                if(!first){
+                    topage(obj.curr);
+                    //window.location.replace("/blog/"+[[${blogid}]]+"/page/"+obj.curr);
+                    //do something
+                }
+            }
+        });
+    });
+    function topage(page){
+        var chatinonepage = [[${chatinonepage}]];
+        var chatcount = [[${chatcount}]];
+        var i =1;
+        for ( ;i<=chatcount;i++){
+            var chatid = "chat"+i;
+            if(i>(page-1)*chatinonepage&&i<=page*chatinonepage){
+                document.getElementById(chatid).style.display = '';
+            }else {
+                document.getElementById(chatid).style.display = 'none';
+            }
+        }
+
+    }
+</script>
+</body>
+</html>

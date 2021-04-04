@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>blog</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/layui.css}" media="all">
+    <script th:src="@{/layui.js}"></script>
+    <script type="text/javascript" th:src="@{/jquery-3.5.1.js}"></script>
+    <script type="text/javascript" th:src="@{/wangEditor.min.js}"></script>
+    <style>
+        .titlemlines{
+            /*width: 200px;*/
+            overflow : hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+        .mlines{
+            /*width: 200px;*/
+            overflow : hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 4;
+            -webkit-box-orient: vertical;
+        }
+        .mline{
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+            margin-left: 20px;
+        }
+        #name,#searchbox,#searchicon{
+            display: flex;
+        }
+    </style>
+</head>
+<body style="background-color: #F2F2F2">
+<div th:insert="~{common/commons.html::newhead}" ></div>
+
+<div class="layui-fluid" style="padding-top: 50px">
+    <div class="layui-row">
+
+        <!--中间博客展示的位置-->
+        <div class="layui-col-md7 layui-col-md-offset2" >
+            <!--一个博客显示-->
+            <div class="layui-card" style="margin-top: 30px">
+                <div class="layui-card-header" style="display: inline-flex;height: 120px">
+                    <div>
+                        <a th:href="@{/personalpage/{id}(id = ${userid})}"><img th:src="@{http://localhost:8080/images/{temp}.jpg(temp=${userheadimg})}" style="margin-top: 10px;border-radius: 25px;height: 50px;width: 50px"></a>
+                        <div style="font-size: 3px;color: gray;padding-left: 10px"><p style="display: inline-flex">id:</p><p style="display: inline-flex" th:text="${userid}"></p></div>
+                    </div>
+                    <div style="padding-left: 20px">
+                        <div th:text="${username}">wode名字</div>
+
+                        <p id="blogtitle" th:value="${blogid}" th:text="${title}" class="titlemlines" style="font-size: 30px">我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题</p>
+                    </div>
+                </div>
+                <div class="layui-card-body">
+                    <h3 th:utext="${contain}">hahahaha</h3>
+                    <hr>
+                </div>
+                <div class="layui-card-body">
+                    <div th:each="tag:${tags}" style="width: auto;display: inline;">
+                        <i class="layui-icon layui-icon-note"></i>
+                        <a th:href="@{/tag/{tagid}(tagid=${tag.getTagid})}"><span th:text="${tag.getTagname}">标签标签标签标签标签</span></a>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="layui-card" style="margin-top: 30px">
+                <div class="layui-card-header">评论</div>
+                <div th:each="commen:${commens}"  th:id="'commen'+${commenStat.index+1}" class="layui-card-body" style="display: inline-flex">
+
+                    <div style="display: block">
+                        <a th:href="@{/personalpage/{id}(id = ${commen['userid']})}"><img th:src="@{http://localhost:8080/images/{hi}.jpg(hi = ${commen['userheadimg']})}" style="margin-top: 10px;border-radius: 25px;height: 50px;width: 50px"></a>
+                        <div style="font-size: 3px;color: gray;padding-left: 10px"><p style="display: inline-flex">id:</p><p style="display: inline-flex" th:text="${commen['userid']}"></p></div>
+                    </div>
+                    <div  style="padding-left: 20px">
+                        <div style="display: inline-flex"><p th:text="${commen['username']}"></p> 回复 <p th:text="${commen['tousername']}"></p>:<p><p class="layui-layout-right"  style="color: gray" th:text="'#'+${commenStat.index+1}"></p></div>
+                        <p th:utext="${commen['commen'].getCommencontain}">我是评论我是评论我是评论我是评论我是评论我是评论我是评论我是评论我是评论我是评论我是评论我是评论我是评论
+                            我是评论我是评论我是评论我是评论我是评论我是评论我是评论我是评论我是评论我是评论我是评论我是评论我是评论
+                            我是评论我是评论我是评论我是评论我是评论我是评论我是评论我是评论我是评论我是评论我是评论我是评论我是评论
+                            我是评论我是评论我是评论我是评论我是评论我是评论我是评论我是评论我是评论我是评论我是评论我是评论我是评论
+                        </p>
+                        <p th:utext="${commen['commen'].getTime}"></p>
+                        <a onclick="replycommentbt(this)" class="layui-btn layui-btn-sm layui-btn-normal" style="margin-left: 600px;background-color: transparent;color: black">回复</a>
+
+                    </div>
+                </div>
+                <!--分页栏-->
+                <div id="commenpage" style="margin-left: 20px"></div>
+            </div>
+
+            <div class="layui-card">
+                <div class="layui-card-header" style="display: inline-flex">
+                    <p>回复@</p>
+                    <a id="atousername">博主</a>
+                    <p style="font-size: 3px;color: gray">id:</p><p id="touserid" th:text="${userid}" style="font-size: 3px;color: gray"></p>
+                </div>
+                <div id="addcomment"></div>
+                <a id="btpostcomment" class="layui-btn" style="margin-left: 20px;margin-bottom: 20px;margin-top: 20px">提交</a>
+            </div>
+
+
+        </div>
+        <!--标签的位置-->
+        <div class="layui-col-md3" style="position: fixed;right: 0px">
+            <div style="background-color: #AEEEEE;border-radius: 20px;margin-top: 50px">
+                <div style="padding-top: 20px;padding-left: 20px;padding-right: 20px;padding-bottom: 20px">
+                    <div th:each="tag:${taglist}" style="width: auto;display: inline;">
+                        <i class="layui-icon layui-icon-note"></i>
+                        <a th:href="'/tag/'+${tag.getTagid}"><span th:text="${tag.getTagname}">标签标签标签标签标签</span></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+<script>
+    const E = window.wangEditor
+    const editor = new E('#addcomment')
+    // 或者 const editor = new E( document.getElementById('div1') )
+    editor.config.height=200
+    editor.config.zIndex = 1
+    editor.create()
+
+    layui.use('laypage', function(){
+        var laypage = layui.laypage;
+
+        //执行一个laypage实例
+        laypage.render({
+            elem: 'commenpage' //注意，这里的 test1 是 ID，不用加 # 号
+            ,count: [[${commencount}]]//数据总数，从服务端得到
+            ,limit:[[${commeninonepage}]]
+            ,jump: function(obj, first){
+                //obj包含了当前分页的所有参数，比如：
+
+                //console.log(obj.curr); //得到当前页，以便向服务端请求对应页的数据。
+                //console.log(obj.limit); //得到每页显示的条数
+                topage(1);
+                //首次不执行
+                if(!first){
+                    topage(obj.curr);
+                    //window.location.replace("/blog/"+[[${blogid}]]+"/page/"+obj.curr);
+                    //do something
+                }
+            }
+        });
+    });
+    document.getElementById("btpostcomment").addEventListener('click',function () {
+        var toblogid = [[${blogid}]];
+        //var toblogid = document.getElementById("blogtitle").innerHTML;
+        var touserid = document.getElementById("touserid").innerText;
+        var userid = [[${session.id}]];
+        var contain = editor.txt.html();
+        console.log("toblogid is:"+toblogid);
+        console.log("touserid is:"+touserid);
+        console.log("userid is:"+userid);
+        console.log("contain is:"+contain);
+      if(contain == ''){
+          window.alert("请填写评论");
+      }else {
+          $.ajax({
+              type: "POST",
+              url: "/addcomment",
+              data: {
+                  "toblogid":toblogid,
+                  "touserid":touserid,
+                  "userid":userid,
+                  "contain": contain
+              },
+              success: function (data) {
+                  if(data == 1) window.location.replace("/blog/"+[[${blogid}]]);
+              }
+          })
+      }
+
+    });
+    function topage(page){
+        var commeninonepage = [[${commeninonepage}]];
+        var commencount = [[${commencount}]];
+        var i =1;
+        for ( ;i<=commencount;i++){
+            var commenid = "commen"+i;
+            if(i>(page-1)*commeninonepage&&i<=page*commeninonepage){
+                document.getElementById(commenid).style.display = 'inline-flex';
+            }else {
+                document.getElementById(commenid).style.display = 'none';
+            }
+        }
+
+    }
+    /*document.getElementById("replycommentbt").addEventListener('click',function (obj){
+        //var temp = obj;
+        //var value = $(obj).parent("div");
+        //var value = $(obj).parent();
+        // = "jgalisdjfla";
+        //var text = $(obj).text();
+        //console.log(text);
+        //document.getElementById("replycommentbt").innerText = "别点我";
+        //console.log(value.innerHTML());
+    })*/
+    function replycommentbt(obj) {
+        var id = $(obj).parent().parent().children("div").eq(0).children("div").children("p").eq(1).text();
+        var name = $(obj).parent().children("div").eq(0).children("p").eq(0).text();
+        document.getElementById("atousername").text = name;
+        document.getElementById("touserid").innerText= id;
+        console.log(retext);
+        console.log(name);
+    };
+</script>
+</body>
+</html>

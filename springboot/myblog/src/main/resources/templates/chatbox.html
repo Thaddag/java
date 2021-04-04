@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>chatmessage</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/layui.css}" media="all">
+    <script th:src="@{/layui.js}"></script>
+    <script type="text/javascript" th:src="@{/wangEditor.min.js}"></script>
+    <script type="text/javascript" th:src="@{/jquery-3.5.1.js}"></script>
+</head>
+<body style="background-color: #F2F2F2">
+<div th:insert="~{common/commons.html::newhead}" ></div>
+<div class="layui-row" style="padding-top: 50px;height: 100%">
+    <div th:insert="~{common/commons.html::sidebar(active = chat)}"></div>
+    <div class="layui-card layui-col-md6 layui-col-md-offset3" >
+        <div class="layui-card-header" style="display: inline-flex">
+            <a th:href="@{/personalpage/{id}(id = ${touserid})}"><img th:src="@{/images/{imgid}.jpg(imgid = ${touser.getImg})}" style="border-radius: 25px;width: 50px;height: 50px"></a>
+            <div th:text="${touser.getUsername}" style="padding-left: 10px"></div>
+        </div>
+        <div class="layui-card-body">
+
+            <div id="message-box" style="overflow: auto;height: 500px">
+                <div th:each="chat:${chatList}" style="display: block">
+                    <div th:if="${chat.getUserid} eq ${touserid}" style="display: inline-block;margin-top: 10px">
+                        <div style="float: left"><a th:href="@{/personalpage/{id}(id = ${touserid})}"><img th:src="@{/images/{imgid}.jpg(imgid = ${touser.getImg})}" style="border-radius: 25px;height: 50px;width: 50px"></a></div>
+                        <div style="margin-left: 70px;margin-top: 5px;margin-right: 10px">
+                            <p th:text="${#temporals.format(chat.getTime,'yyyy-MM-dd HH:mm:ss')}">xxxx-xx-xx xx:xx:xx</p>
+                            <div th:utext="${chat.getContain}" style="padding: 10px;border-radius: 5px;background-color: #6495ED" >
+                                <p>长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div th:if="${chat.getUserid} eq ${session.id}" style="text-align: right">
+                        <div   style="display: inline-block;margin-top: 10px;margin-right: 10px">
+                            <div style="float: right"><a th:href="@{/personalpage/{id}(id = ${session.id})}"><img th:src="@{/images/{imgid}.jpg(imgid = ${session.headimg})}" style="border-radius: 25px;height: 50px;width: 50px"></a></div>
+                            <div style="margin-right: 70px;margin-top: 5px">
+                                <p align="right" th:text="${#temporals.format(chat.getTime,'yyyy-MM-dd HH:mm:ss')}">xxxx-xx-xx xx:xx:xx</p>
+                                <div th:utext="${chat.getContain}" style="padding: 10px;border-radius: 5px;background-color: #FAEBD7" >
+                                    <p>长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本长文本</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="chatedit" style="margin-top: 20px"></div>
+            <a id="postbt" class="layui-btn-sm layui-btn-normal" style="float: right;margin: 6px;border-radius: 5px">发送</a>
+        </div>
+    </div>
+</div>
+<script>
+    const E = window.wangEditor
+    const editor = new E('#chatedit')
+    // 或者 const editor = new E( document.getElementById('div1') )
+    editor.config.height=300
+    editor.config.uploadImgServer = '/uploadimg'
+    editor.config.uploadFileName = 'myFile'
+    editor.config.zIndex = 1
+    editor.config.uploadImgMaxLength = 1
+    editor.create()
+    editor.config.uploadImgHooks = {
+        customInsert: function(insertImgFn, result) {
+            // result 即服务端返回的接口
+            console.log('customInsert', result)
+
+            // insertImgFn 可把图片插入到编辑器，传入图片 src ，执行函数即可
+            console.log(result.data)
+            insertImgFn(result.data)
+        }
+    }
+    layui.use('element', function(){
+        var element = layui.element;
+    });
+    var div = document.getElementById('message-box');
+    div.scrollTop = div.scrollHeight;
+    document.getElementById("postbt").addEventListener('click',function () {
+        var touserid = [[${touserid}]];
+        var contain = editor.txt.html();
+        var meinblacklist = [[${meinblacklist}]];
+        if( meinblacklist == 1){
+            alert("你在对方黑名单中，不能发送信息");
+        }else if(contain == ''){
+            alert("请填写内容");
+        }else {
+            $.ajax({
+                type: "POST",
+                url: "/postchat",
+                data: {
+                    "touserid":touserid,
+                    "contain": editor.txt.html()
+                },
+                success: function (data) {
+                    window.location.replace("/chatto/"+touserid);
+                }
+            })
+        }
+
+    })
+
+</script>
+</body>
+</html>

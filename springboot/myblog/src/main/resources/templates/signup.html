@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+    <link rel="stylesheet" th:href="@{/css/layui.css}">
+    <script th:src="@{/layui.js}"></script>
+    <script type="text/javascript" th:src="@{/md5js/md5.js}"></script>
+    <script type="text/javascript" th:src="@{/jquery-3.5.1.js}"></script>
+</head>
+<body th:background="@{/img/login_background.jpg}" style="background-size: 100%" >
+<div class="layui-container" th:marginheight="200px">
+    <div class="layui-row layui-main">
+        <div class="layui-col-md8 layui-col-md-offset3 layui-anim" style="margin-top: 100px">
+
+                <div style="height: 40px" class="layui-form-item " >
+                    <label class="layui-form-label">用户名</label>
+                    <div class="layui-input-inline">
+                        <input id="username" type="text" name="username" class="layui-input"
+                                style="background-color: transparent;border-color: black;border-top: transparent;border-right: transparent;border-left: transparent">
+                        <p id="usernamemsg" style="font-size: 3px"></p>
+                    </div>
+                </div>
+                <div style="height: 40px" class="layui-form-item " >
+                    <label class="layui-form-label">密码</label>
+                    <div class="layui-input-inline">
+                        <input id="password" type="password" name="password" class="layui-input"
+                               style="background-color: transparent;border-color: black;border-top: transparent;border-right: transparent;border-left: transparent">
+                        <p id="passwordmsg" style="font-size: 3px"></p>
+                    </div>
+                </div>
+                <div style="height: 40px" class="layui-form-item " >
+                    <label class="layui-form-label" style="width: auto">再次确认密码</label>
+                    <div class="layui-input-inline">
+                        <input id="password2" type="password" name="password2" class="layui-input"
+                               style="background-color: transparent;border-color: black;border-top: transparent;border-right: transparent;border-left: transparent">
+                        <p id="password2msg" style="font-size: 3px"></p>
+                    </div>
+                </div>
+
+                <div style="height: 40px" class="layui-form-item " >
+                    <div class="layui-inline">
+                        <label class="layui-form-label">邮箱地址</label>
+                        <div class="layui-input-inline">
+                            <input id="email" type="text" name="email" class="layui-input"
+                                   style="background-color: transparent;border-color: black;border-top: transparent;border-right: transparent;border-left: transparent">
+                            <p id="emailmsg" style="font-size: 3px"></p>
+                        </div>
+                        <div class="layui-form-mid " style="margin-left: 30px;height: 18px">
+                            <button id="btsendemail" class="layui-btn">发送验证码</button>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div style="height: 40px" class="layui-form-item " >
+                    <label class="layui-form-label">填写验证码</label>
+                    <div class="layui-input-inline">
+                        <input id="checkcode" type="text" name="passcode" class="layui-input"
+                               style="background-color: transparent;border-color: black;border-top: transparent;border-right: transparent;border-left: transparent">
+                        <p id="checkcodemsg" style="font-size: 3px"></p>
+                    </div>
+                </div>
+
+            <p id="msg" style="color: red"></p>
+            <div style="margin-left: 120px;margin-top: 80px">
+                <button id="btsignup" class="layui-btn "style="margin-left:20px">注册</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    layui.use('form',function () {
+        var form = layui.form;
+        /*监听提交数据*/
+        form.on('submit(formDemo)', function(data){
+            layer.msg(JSON.stringify(data.field));
+            return false;
+        });
+    })
+    document.getElementById("btsendemail").addEventListener('click',function () {
+        document.getElementById("btsendemail").innerText = "已发送";
+        var email = $("#email").val();
+        console.log("dinale email value is"+email);
+        if(email == ''){
+            document.getElementById("msg").innerText = "请输入邮箱地址";
+        }else {
+            $.ajax({
+                type: "POST",
+                url: "/sendmail",
+                data: {
+                    "email": email
+                },
+                success: function (data) {
+                    if(data == 1){
+                        console.log("send success");
+                    }
+                }
+            })
+        }
+
+    })
+    document.getElementById("btsignup").addEventListener('click',function () {
+        console.log("点击注册按钮");
+        var email = $("#email").val();
+        var username = $("#username").val();
+        var password = $("#password").val();
+        var password2 = $("#password2").val();
+        var checkcode = $("#checkcode").val();
+        if(email == '' ||username == ''|| password == ''||password2 == ''||checkcode==''||$("#usernamemsg").text().length>0||$("#passwordmsg").text().length>0||$("#password2msg").text().length>0){
+            document.getElementById("msg").innerText = "请填写完整";
+        }else if(password != password2){
+            document.getElementById("msg").innerText = "前后密码不一致";
+        }else {
+            var md5password = md5(password);
+            $.ajax({
+                type: "POST",
+                url: "/tosignup",
+                data: {
+                    "username":username,
+                    "password":md5password,
+                    "checkcode":checkcode,
+                    "email": email
+                },
+                success: function (data) {
+                    if(data == 0){
+                        document.getElementById("msg").innerText = "邮箱地址或验证码不正确";
+                    }else if(data == 1){
+                        document.getElementById("msg").innerText = "验证码过期";
+                    }else if(data == 2){
+                        window.location.replace("/login");
+                    }
+                }
+            })
+        }
+    })
+    document.getElementById("username").addEventListener('input',function (){
+        var username = $("#username").val();
+        document.getElementById("msg").innerText = '';
+        $.ajax({
+            type: "POST",
+            url: "/checkname",
+            data: {
+                "username":username,
+            },
+            success: function (data) {
+                if(data == 0){
+                    document.getElementById("usernamemsg").innerText = "用户名被使用";
+                }else if(data == 1){
+                    document.getElementById("usernamemsg").innerText = "";
+                }else if(data == 2){
+                    document.getElementById("usernamemsg").innerText = "用户名长度应在4-15之间";
+                }
+            }
+        })
+    })
+    document.getElementById("password").addEventListener('input',function () {
+        var password = $("#password").val();
+        if(password.length<6||password.length>15){
+            document.getElementById("passwordmsg").innerText = "密码长度应为6-15";
+        }else {
+            document.getElementById("passwordmsg").innerText = "";
+        }
+    })
+    document.getElementById("password2").addEventListener('input',function () {
+        var password2 = $("#password2").val();
+        var password = $("#password").val();
+        if(password2.length<6||password2.length>15){
+            document.getElementById("password2msg").innerText = "密码长度应为6-15";
+        }else if(password != password2){
+            document.getElementById("password2msg").innerText = "密码不一致";
+        }else {
+            document.getElementById("password2msg").innerText = "";
+        }
+    })
+
+
+
+
+</script>
+</body>
+</html>

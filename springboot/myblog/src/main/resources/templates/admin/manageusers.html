@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>用户管理</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/layui.css}" media="all">
+
+</head>
+<body>
+<div th:insert="~{common/commons::managesidebar(active = usermanage)}"></div>
+<div class="layui-container">
+    <div class="layui-col-md12  layui-col-md-offset1">
+        <div class="layui-card">
+            <div class="layui-card-header">
+                <p>用户管理</p>
+            </div>
+            <div class="layui-card-body">
+                <table class="layui-table">
+                    <colgroup>
+                        <col width="100">
+                        <col width="100">
+                        <col width="300">
+                        <col width="200">
+                        <col width="100">
+                        <col width="50">
+                    </colgroup>
+                    <thead>
+                    <tr>
+                        <th>userid</th>
+                        <th>头像</th>
+                        <th>用户名</th>
+                        <th>入站日期</th>
+                        <th>注销</th>
+                        <th>操作</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="user:${userlist}" th:id="'user'+${userStat.index+1}">
+                        <td th:text="${user.getId}">1</td>
+                        <td><img th:src="@{/images/{img}.jpg(img = ${user.getImg})}" style="height: 60px"></td>
+                        <td th:text="${user.getUsername}">小王</td>
+                        <td th:text="${#temporals.format(user.getTime,'yyyy-MM-dd')}">152</td>
+                        <td><input th:onclick="'javascript:changeenable('+${user.getId}+',this)' " type="checkbox" th:checked="${user.getEnable} eq 0" lay-skin="switch"></td>
+                        <td>
+                            <div class="layui-table-cell laytable-cell-2-0-8">
+                                <a th:href="@{'/admin/editusermsg/'+${user.getId}}" class="layui-btn layui-btn-normal layui-btn-xs" lay-event="edit">
+                                    <i class="layui-icon layui-icon-edit"></i>编辑信息
+                                </a>
+                                <a th:href="@{'/admin/photos/'+${user.getId}}" class="layui-btn layui-btn-normal layui-btn-xs" lay-event="edit">
+                                    <i class="layui-icon layui-icon-edit"></i>查看相册
+                                </a>
+
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+                <div id="userspage"></div>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript" th:src="@{/jquery-3.5.1.js}"></script>
+<script th:src="@{/layui.js}"></script>
+<script>
+    layui.use('laypage', function(){
+        var laypage = layui.laypage;
+
+        //执行一个laypage实例
+        laypage.render({
+            elem: 'userspage' //注意，这里的 test1 是 ID，不用加 # 号
+            ,count: [[${usercount}]] //数据总数，从服务端得到
+            ,limit:[[${userinonepage}]]
+            ,jump: function(obj, first){
+                //obj包含了当前分页的所有参数，比如：
+
+                //console.log(obj.curr); //得到当前页，以便向服务端请求对应页的数据。
+                //console.log(obj.limit); //得到每页显示的条数
+                topage(1);
+                //首次不执行
+                if(!first){
+                    topage(obj.curr);
+                    //console.log(obj.curr);
+                    //window.location.replace("/blog/"+[[${blogid}]]+"/page/"+obj.curr);
+                    //do something
+                }
+            }
+        });
+        function topage(page){
+            var userinonepage = [[${userinonepage}]];
+            var usercount = [[${usercount}]];
+            var i =1;
+            for ( ;i<=usercount;i++){
+                var userid = "user"+i;
+                if(i>(page-1)*userinonepage&&i<=page*userinonepage){
+                    $("#"+userid).show();
+                    //document.getElementById(userid).style.display ='';
+                }else {
+                    $("#"+userid).hide();
+                    //document.getElementById(userid).hide();
+                    //document.getElementById(userid).style.display ='none';
+                }
+            }
+
+        }
+    });
+    function changeenable(userid,obj) {
+        var enable = 1;
+        if(obj.checked == true) enable = 0;
+
+        $.ajax({
+            type: "POST",
+            url: "/admin/changeenable",
+            data: {
+                "userid":userid,
+                "enable":enable
+            },
+            success: function (data) {
+            }
+        })
+
+    }
+</script>
+
+</body>
+</html>

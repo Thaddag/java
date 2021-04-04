@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div style="height: 50px;background-color: #009688;position: fixed;width: 100%;margin-top: 0px;z-index: 1" th:fragment="mainhead">
+
+    <!--搜索图标-->
+    <i id="searchicon" class="layui-icon layui-icon-search" style="float:right;width: auto;padding-right: 20px;font-size: 30px" onclick = "search()"></i>
+    <!--搜索输入框-->
+    <input type="text" id="searchbox" name="searchtext" class="layui-input"
+           style="width: auto;float: right;background-color: transparent;border-color: black;border-top: transparent;border-right: transparent;border-left: transparent">
+    <!--用户名-->
+    <span href="" <!--th:href="@{home/}+${getid}-->" id="name" style="width: auto;float:right;height: 30px;font-size: 15px;padding-top: 15px;padding-right: 20px" >用户名</span>
+
+
+</div>
+
+<ul  lay-filter="" class="layui-nav" th:fragment="newhead" style="background-color: #2F4056;height:50px;width: 100%;position: fixed;z-index: 999">
+    <li class="layui-nav-item layui-hide-xs" lay-unselect="">
+        <input type="text" placeholder="搜索..." autocomplete="off" class="layui-input layui-input-search" layadmin-event="serach" onkeypress="EnterPress(event)" th:id="searchbox">
+    </li>
+    <li class="layui-nav-item">
+        <a th:href="@{/toaddblog}"><i class="layui-icon layui-icon-add-1"></i></a>
+    </li>
+    <li class="layui-nav-item">
+        <a th:text="${session.name}" href="" title="">
+            用户名
+            <!--<p style="color:palegreen">用户名</p>-->
+        </a>
+        <dl class="layui-nav-child"> <!-- 二级菜单 -->
+            <!--<dd><a id="editmsg" th:href="@{/changeusermsg}">修改信息</a></dd>-->
+            <dd><a id="editmsg" th:href="@{/editmsg}">修改信息</a></dd>
+            <dd><a th:href="@{/editpassword}">修改密码</a></dd>
+            <dd><a th:href="@{/signout}">登出</a></dd>
+        </dl>
+    </li>
+
+        <a th:href="@{/home}" ><img th:src="@{/images/{img}.jpg(img=${session.headimg})}" style="width: 40px;height: 40px; border-radius: 20px;margin-left: 25px"></a>
+
+</ul>
+
+
+<!--<ul class="layui-nav" th:fragment="testhead" lay-filter="">
+    <li class="layui-nav-item"><a href="">最新活动</a></li>
+    <li class="layui-nav-item layui-this"><a href="">产品</a></li>表示一进页面显示这个
+    <li class="layui-nav-item"><a href="">大数据</a></li>
+    <li class="layui-nav-item">
+        <a href="javascript:;">解决方案</a>
+        <dl class="layui-nav-child"> &lt;!&ndash; 二级菜单 &ndash;&gt;
+            <dd><a href="">移动模块</a></dd>
+            <dd><a href="">后台模版</a></dd>
+            <dd><a href="">电商平台</a></dd>
+        </dl>
+    </li>
+    <li class="layui-nav-item"><a href="">社区</a></li>
+</ul>-->
+
+<div class="layui-col-md2" th:fragment="sidebar(active)">
+    <ul class="layui-nav layui-nav-tree layui-nav-side" style="margin-top: 60px">
+        <li th:class="${active == 'home.html'?'layui-nav-item layui-this':'layui-nav-item'}"><a th:href="@{/home}">我的信息</a></li>
+        <li th:class="${active == 'myphoto.html'?'layui-nav-item layui-this':'layui-nav-item'}"><a th:href="@{/myphoto}">我的相册</a></li>
+        <li th:class="${active == 'myblog'?'layui-nav-item layui-this':'layui-nav-item'}"><a th:href="@{/myblog}">我的博文</a></li>
+        <li th:class="${active == 'chat'?'layui-nav-item layui-this':'layui-nav-item'}"><a th:href="@{/chat}">私信</a></li>
+        <li th:class="${active == 'blacklist'?'layui-nav-item layui-this':'layui-nav-item'}"><a th:href="@{/blacklist}">黑名单</a></li>
+    </ul>
+</div>
+
+<div class="layui-col-md2" th:fragment="managesidebar(active)">
+    <ul class="layui-nav layui-nav-tree layui-nav-side" style="padding-top: 20px">
+        <p style="padding-left: 20px" th:text="${session.name}"></p>
+        <li th:class="${active == 'usermanage'?'layui-nav-item layui-this':'layui-nav-item'}"><a th:href="@{/admin/userlist}">用户管理</a></li>
+        <li th:class="${active == 'blogmanage'?'layui-nav-item layui-this':'layui-nav-item'}"><a th:href="@{/admin/bloglist}">博客管理</a></li>
+        <li th:class="${active == 'commenmanage'?'layui-nav-item layui-this':'layui-nav-item'}"><a th:href="@{/admin/tocommenlist}">评论管理</a></li>
+        <li th:class="${active == 'chatmanage'?'layui-nav-item layui-this':'layui-nav-item'}"><a th:href="@{/admin/chatlist}">私信管理</a></li>
+        <li th:class="${active == 'tagmanage'?'layui-nav-item layui-this':'layui-nav-item'}"><a th:href="@{/admin/taglist}">标签管理</a></li>
+    </ul>
+</div>
+
+<script th:src="@{/layui.js}" charset="utf-8"></script>
+<!-- 注意：如果你直接复制所有代码到本地，上述js路径需要改成你本地的 -->
+<script>
+    layui.use('element', function(){
+        var element = layui.element; //导航的hover效果、二级菜单等功能，需要依赖element模块
+
+        //监听导航点击
+        element.on('nav(demo)', function(elem){
+            //console.log(elem)
+            layer.msg(elem.text());
+        });
+    });
+
+
+</script>
+</body>
+</html>

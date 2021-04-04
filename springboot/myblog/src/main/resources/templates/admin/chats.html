@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>评论管理</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/layui.css}" media="all">
+    <script th:src="@{/layui.js}"></script>
+    <script type="text/javascript" th:src="@{/jquery-3.5.1.js}"></script>
+</head>
+<body>
+<div th:insert="~{common/commons.html::managesidebar(active ='chatmanage')}"></div>
+<div class="layui-container">
+    <div class="layui-col-md12  layui-col-md-offset1">
+        <div class="layui-card">
+            <div class="layui-card-header">
+                <p>私信管理</p>
+            </div>
+            <div class="layui-card-body">
+                <table class="layui-table">
+                    <colgroup>
+                        <col width="100">
+                        <col width="100">
+                        <col width="200">
+                        <col width="1200">
+                        <col width="50">
+                    </colgroup>
+                    <thead>
+                    <tr>
+                        <th>发布id</th>
+                        <th>发布人</th>
+                        <th>发布时间</th>
+                        <th>内容</th>
+                        <th>操作</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="chat:${chatlist}" th:id="'chat'+${chatStat.index+1}">
+                        <td th:text="${chat['chatid']}">1</td>
+                        <td th:text="${chat['username']}">小马</td>
+                        <td th:text="${#temporals.format(chat['time'],'yyyy-MM-dd')}">2016-11-29</td>
+                        <td th:utext="${chat['contain']}">我叫小马，今年两岁了，我天生神力，是混元形意太极门掌门人，有人问我，马老师，发生甚么事了？她发给我一张照片，我一看原来是，昨天，在健身房有两个年轻人，一个体重1w多公斤，一个两公斤。他们说在健身房练功把颈椎连坏了，我说你那个不行。</td>
+                        <td class="layui-table-cell laytable-cell-2-0-8"> <a th:onclick="'javascript:delchat('+${chat['chatid']}+','+${chat['userid']}+')' " class="layui-btn layui-btn-danger layui-btn-xs" lay-event="edit">删除</a></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div id="chatpage" style="margin-left: 20px"></div>
+        </div>
+        <textarea id="reasonbox" style="margin-bottom: 20px" class="layui-textarea" placeholder="请填写一个删除理由"></textarea>
+    </div>
+</div>
+<script>
+    layui.use('laypage', function(){
+        var laypage = layui.laypage;
+
+        //执行一个laypage实例
+        laypage.render({
+            elem: 'chatpage' //注意，这里的 test1 是 ID，不用加 # 号
+            ,count: [[${chatlistcount}]] //数据总数，从服务端得到
+            ,limit:[[${chatinonepage}]]
+            ,jump: function(obj, first){
+                //obj包含了当前分页的所有参数，比如：
+
+                //console.log(obj.curr); //得到当前页，以便向服务端请求对应页的数据。
+                //console.log(obj.limit); //得到每页显示的条数
+                topage(1);
+                //首次不执行
+                if(!first){
+                    topage(obj.curr);
+                    //window.location.replace("/blog/"+[[${blogid}]]+"/page/"+obj.curr);
+                    //do something
+                }
+            }
+        });
+    });
+    function topage(page){
+        var chatinonepage = [[${chatinonepage}]];
+        var chatcount = [[${chatlistcount}]];
+        var i =1;
+        for ( ;i<=chatcount;i++){
+            var chatid = "chat"+i;
+            if(i>(page-1)*chatinonepage&&i<=page*chatinonepage){
+                document.getElementById(chatid).style.display = '';
+            }else {
+                document.getElementById(chatid).style.display = 'none';
+            }
+        }
+
+    }
+    function delchat(chatid,userid) {
+        var reason = document.getElementById("reasonbox").value;
+        if(reason == ''){
+            alert("请填写一个理由");
+        }else {
+            $.ajax({
+                type: "POST",
+                url: "/admin/delchat",
+                data: {
+                    "chatid":chatid,
+                    "reason":reason,
+                    "userid":userid
+                },
+                success: function (data) {
+                    window.location.replace("/admin/chatlist");
+                }
+            })
+        }
+
+
+        //window.location.replace("")
+    }
+</script>
+</body>
+</html>

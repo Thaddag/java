@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta charset="UTF-8">
+    <title>edit</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/layui.css}" media="all">
+    <script th:src="@{/layui.js}"></script>
+    <script type="text/javascript" th:src="@{/jquery-3.5.1.js}"></script>
+    <script type="text/javascript" th:src="@{/wangEditor.min.js}"></script>
+</head>
+<body style="background-color: #F2F2F2">
+    <div th:insert="~{common/commons.html::newhead}" ></div>
+    <div class="layui-row" style="padding-top: 50px;height: 100%">
+        <!--<div th:insert="~{common/commons.html::sidebar}"></div>-->
+        <div class="layui-col-md7 layui-col-md-offset2" style="margin-top: 50px">
+            <div class="layui-card">
+                <div class="layui-card-body">
+                    <input required id="title" type="text" class="layui-input" placeholder="请输入标题">
+                    <hr>
+                    <div class="layui-collapse" lay-filter="test">
+                        <div class="layui-colla-item">
+                            <h2 class="layui-colla-title">选择标签</h2>
+                            <div class="layui-colla-content">
+                                <form class="layui-form" action="">
+                                    <div class="layui-form-item">
+                                        <input name="checkbox" th:each="tag:${taglist}" type="checkbox" th:value="${tag.getTagid}" th:title="${tag.getTagname()}">
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="editblog" style="z-index: -1;"></div>
+                    <hr>
+                    <a id="subblog" href="javascript:;" layadmin-event="replyNote" data-id="5" class="layui-btn layui-btn layuiadmin-reply">提交</a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <script>
+        layui.use(['element', 'layer'], function(){
+            var element = layui.element;
+            var layer = layui.layer;
+
+            //监听折叠
+            element.on('collapse(test)', function(data){
+                layer.msg('展开状态：'+ data.show);
+            });
+        });
+        layui.use('form',function () {
+        var form = layui.form;
+        /*监听提交数据*/
+            form.on('submit(formDemo)', function(data){
+            layer.msg(JSON.stringify(data.field));
+            return false;
+            });
+        })
+
+        const E = window.wangEditor
+        const editor = new E('#editblog')
+        // 或者 const editor = new E( document.getElementById('div1') )
+        editor.config.height=700
+        editor.config.debug = true;
+        editor.config.uploadImgServer = '/uploadimg'
+        editor.config.uploadFileName = 'myFile'
+        /*editor.config.uploadImgHooks = {
+            success: function (xhr, editor, result) {
+
+            }
+        }*/
+        editor.config.zIndex = 1
+        editor.config.uploadImgMaxLength = 1
+        editor.create()
+        editor.config.uploadImgHooks = {
+            customInsert: function(insertImgFn, result) {
+                // result 即服务端返回的接口
+                console.log('customInsert', result)
+
+                // insertImgFn 可把图片插入到编辑器，传入图片 src ，执行函数即可
+                console.log(result.data)
+                insertImgFn(result.data)
+            }
+        }
+
+        document.getElementById("subblog").addEventListener('click',function () {
+            var title = document.getElementById("title").value;
+            var obj=document.getElementsByName("checkbox");
+            var userid = [[${session.id}]];
+            var contain = editor.txt.html();//取到对象数组后，我们来循环检测它是不是被选中
+
+            var array = new Array();
+            //var array =;
+            console.log(obj.length);
+
+            var j=0;
+            for(var i=0; i<obj.length; i++){
+                console.log(obj[i].title);
+                if(obj[i].checked){
+                  array[j] = obj[i].value;
+                  j++;
+                }
+            }
+            console.log(array.length);
+            if(array.length ==0){
+                window.alert("请至少选择一项标签");
+            }else if(title == '' || userid == ''|| contain == ''){
+                window.alert("请填写完整");
+            }else{
+                $.ajax({
+                    type: "POST",
+                    url: "/postblog",
+                    data: {
+                        "userid":userid,
+                        "title":title,
+                        "tags":array,
+                        "contain": editor.txt.html()
+                    },
+                    success: function (data) {
+                        window.location.replace("/blog/"+data);
+                    }
+                })
+            }
+        })
+    </script>
+</body>
+</html>

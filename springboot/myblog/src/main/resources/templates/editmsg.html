@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>editmsg</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/layui.css}" media="all">
+    <script th:src="@{/layui.js}"></script>
+    <script type="text/javascript" th:src="@{/jquery-3.5.1.js}"></script>
+</head>
+<body style="background-color: #F2F2F2">
+<div th:insert="~{common/commons.html::newhead}" ></div>
+<div class="layui-row" style="padding-top: 50px;height: 100%">
+    <div th:insert="~{common/commons.html::sidebar(active='home.html')}"></div>
+    <div class="layui-card layui-col-md6 layui-col-md-offset3" >
+        <div class="layui-card-body">
+            <div class="layui-form layui-col-md-offset2" lay-filter="">
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">用户名</label>
+                    <div class="layui-input-inline" style="height: 40px;">
+                        <input id="name" th:value="${session.name}" type="text" name="username" class="layui-input">
+                        <p id="usernamemsg" style="font-size: 3px"></p>
+                    </div>
+                </div>
+
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">头像</label>
+                    <div class="layui-input-inline">
+                    <!--    <input name="avatar" lay-verify="required" id="LAY_avatarSrc" placeholder="图片地址" value="http://cdn.layui.com/avatar/168.jpg" class="layui-input">
+                    -->
+                        <img id="img" style="height: 100px" th:src="@{/images/{img}.jpg(img=${session.headimg})}">
+                    </div>
+                    <div class="layui-input-inline layui-btn-container" style="width: auto;">
+                        <button type="button" class="layui-btn layui-btn-primary" id="btupload">
+                            <i class="layui-icon"></i>上传图片
+                        </button><input class="layui-upload-file" type="file" accept="" name="file">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">邮箱</label>
+                    <div class="layui-input-inline">
+                        <input id="email" type="text" name="email" th:value="${session.email}" lay-verify="email" autocomplete="off" class="layui-input">
+                        <p id="changemsg" style="font-size: 3px;color: red"></p>
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <div class="layui-input-block">
+                        <button id="btchange" class="layui-btn" lay-submit="" lay-filter="setmyinfo">确认修改</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    layui.use(['element', 'layer'], function(){
+        var element = layui.element;
+        var layer = layui.layer;
+
+        //监听折叠
+        element.on('collapse(test)', function(data){
+            layer.msg('展开状态：'+ data.show);
+        });
+    });
+    layui.use('form',function () {
+        var form = layui.form;
+        /*监听提交数据*/
+        form.on('submit(formDemo)', function(data){
+            layer.msg(JSON.stringify(data.field));
+            return false;
+        });
+    })
+    layui.use('upload', function(){
+        var upload = layui.upload;
+
+        //执行实例
+        var uploadInst = upload.render({
+            elem: '#btupload' //绑定元素
+            ,url: '/uploadheadimg' //上传接口
+            ,done: function(res){
+                var jsimg = document.getElementById("img");
+                jsimg.src = res.data[0];
+                var s = document.getElementById("img").src;
+                console.log(getFileName(s));
+                //上传完毕回调
+            },error: function(){
+                //请求异常回调
+            }
+
+        });
+    });
+
+    document.getElementById("btchange").addEventListener('click',function () {
+        var name = document.getElementById("name").value;
+        var img = getFileName(document.getElementById("img").src);
+        var email = document.getElementById("email").value;
+        //var namemsg =document.getElementById("usernamemsg").value;
+        console.log(name+"\n"+img+"\n"+email+"\n"+[[${session.id}]]);
+        if($("#usernamemsg").text().length>0||email == ''){
+            document.getElementById("changemsg").innerText= "请填写完整";
+        }else{
+             $.ajax({
+            type:"POST",
+            url:"/changeusermsg",
+            data:{
+                "id":[[${session.id}]],
+                "username":name,
+                "headimg":img,
+                "email":email
+            },
+            success:function (data)
+            {
+                window.location.replace("/editmsg");
+            }
+        })
+        }
+
+    })
+    document.getElementById("name").addEventListener('input',function (){
+
+        document.getElementById("usernamemsg").innerText = "...";
+        var username = document.getElementById("name").value;
+            //$("#name").val();
+        console.log(username);
+        $.ajax({
+            type: "POST",
+            url: "/checkname",
+            data: {
+                "username":username,
+            },
+            success: function (data) {
+                if(data == 0){
+                    document.getElementById("usernamemsg").innerText = "用户名被使用";
+                }else if(data == 1){
+                    document.getElementById("usernamemsg").innerText = "";
+                }else if(data == 2){
+                    document.getElementById("usernamemsg").innerText = "用户名长度应在4-15之间";
+                }
+            }
+        })
+    })
+    function getFileName(url){
+        var regExp = /(.*\/)*([^.]+).*/ig;
+        url=url.replace(regExp,"$2");
+        return url;
+    }
+</script>
+</body>
+</html>

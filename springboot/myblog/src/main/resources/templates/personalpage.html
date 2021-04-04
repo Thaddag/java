@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>个人主页</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/layui.css}" media="all">
+    <script th:src="@{/layui.js}"></script>
+    <script type="text/javascript" th:src="@{/jquery-3.5.1.js}"></script>
+</head>
+<body style="background-color: #F2F2F2">
+<div th:insert="~{common/commons.html::newhead}" ></div>
+<div class="layui-row" style="padding-top: 50px;background-color: #F2F2F2">
+    <!--<div th:insert="~{common/commons.html::sidebar}"></div>-->
+
+    <div class="layui-col-md10 layui-row layui-col-md-offset2" style="margin-top: 50px">
+        <div class="layui-card layui-col-md4">
+            <div class="layui-card-header">用户信息</div>
+            <div class="layui-card-body" style="display: inline-flex">
+                <img th:src="@{/images/{imgid}.jpg(imgid = ${user.getImg})}" style="height: 80px;width: 80px">
+                <div style="margin-left: 20px;display: table">
+                    <div style="display: table-row"><p style="display: table-cell">用户名:</p><p style="display: table-cell" th:text="${user.getUsername}"></p></div>
+                    <div style="display: table-row"><p style="display: table-cell">ID：</p><p style="display: table-cell" th:text="${user.getId}"></p></div>
+                </div>
+                <div style="margin-left: 10px;margin-top: 30px;display: inline-flex">
+                    <a class="layui-btn layui-btn-normal layui-btn-xs" style="width: 55px;display: block;margin-top: 10px" th:href="@{'/chatto/'+${user.getId}}">私信</a>
+                    <a id="addblacklist" class="layui-btn layui-btn-normal layui-btn-xs" style="width: 70px;display: block;margin-top: 10px;background-color: black" >拉入黑名单</a>
+                    <!--<a class="layui-btn-sm layui-btn-normal">私信</a>
+                    <a class="layui-btn-sm layui-btn-normal">加入黑名单</a>-->
+                </div>
+            </div>
+        </div>
+        <div class="layui-col-md4 layui-card layui-col-md-offset1">
+            <div class="layui-card-header">数据</div>
+            <div style="display: table" class="layui-card-body">
+                <div style="display: table-row"><p style="display: table-cell">发帖量：</p><p th:text="${blogscount}"></p></div>
+                <div style="display: table-row"><p style="display: table-cell">入站日期：</p><p th:text="${user.getTime}"></p></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="layui-col-md3 layui-col-md-offset2">
+        <div class="layui-card">
+            <div class="layui-card-header">他的博文</div>
+            <div class="layui-card-body">
+                <div th:each="blog:${bloglist}" th:id="'blog'+${blogStat.index+1}" >
+                    <div style="display: inline-flex">
+                        <a th:href="'/blog/'+${blog.getBlogid}" th:text="${blog.getTitle}"></a>
+                    </div>
+                    <p th:text="${#temporals.format(blog.getTime,'yyyy/MM/dd')}"></p>
+                    <hr>
+                </div>
+
+                <div id="commentindex"></div>
+            </div>
+            <div id="blogspage"></div>
+        </div>
+
+    </div>
+    <div class="layui-col-md4 layui-col-md-offset1">
+        <div class="layui-card">
+            <div class="layui-card-header">
+                <p>相册</p>
+            </div>
+            <div class="layui-card-body">
+                <div style="height: 400px;display: inline-block;overflow:auto;" >
+                    <div style="margin-top: 10px;padding: 10px;display:inline-block;width: auto">
+                        <img th:each="photo:${photolist}" style="margin: 2px" id="img" th:src="@{/images/{img}.jpg(img = ${photo})}" width="100px" >
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    layui.use('element', function(){
+        var element = layui.element;
+    });
+    layui.use('laypage', function(){
+        var laypage = layui.laypage;
+
+        //执行一个laypage实例
+        laypage.render({
+            elem: 'blogspage' //注意，这里的 test1 是 ID，不用加 # 号
+            ,count: [[${blogscount}]] //数据总数，从服务端得到
+            ,limit:[[${bloginonepage}]]
+            ,jump: function(obj, first){
+                //obj包含了当前分页的所有参数，比如：
+
+                //console.log(obj.curr); //得到当前页，以便向服务端请求对应页的数据。
+                //console.log(obj.limit); //得到每页显示的条数
+                topage(1);
+                //首次不执行
+                if(!first){
+                    topage(obj.curr);
+                    //window.location.replace("/blog/"+[[${blogid}]]+"/page/"+obj.curr);
+                    //do something
+                }
+            }
+        });
+    });
+    function topage(page){
+        var bloginonepage = [[${bloginonepage}]];
+        var blogcount = [[${blogscount}]];
+        var i =1;
+        for ( ;i<=blogcount;i++){
+            var blogid = "blog"+i;
+            if(i>(page-1)*bloginonepage&&i<=page*bloginonepage){
+                document.getElementById(blogid).style.display = '';
+            }else {
+                document.getElementById(blogid).style.display = 'none';
+            }
+        }
+
+    }
+    document.getElementById("addblacklist").addEventListener('click',function () {
+        var userid = [[${user.getId}]];
+        var inblacklist = [[${isblacklist}]];
+        if(inblacklist == 1){
+            alert("已在黑名单中");
+        }else if(confirm("确定加入黑名单吗？"))
+        {
+            $.ajax({
+                type: "GET",
+                url: "/addblacklist/"+userid,
+                data: {
+                },
+                success: function (data) {
+                    window.location.replace("/personalpage/"+userid);
+                }
+            })
+            //window.location.replace("/delblog/"+blogid);
+            //alert("继续");
+        }else{
+
+            //alert("再见");
+        }
+    })
+</script>
+</body>
+</html>

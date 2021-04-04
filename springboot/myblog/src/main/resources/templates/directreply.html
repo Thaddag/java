@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>reply</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/layui.css}" media="all">
+    <script th:src="@{/layui.js}"></script>
+    <script type="text/javascript" th:src="@{/jquery-3.5.1.js}"></script>
+    <script type="text/javascript" th:src="@{/wangEditor.min.js}"></script>
+    <style>
+        .mlines{
+            /*width: 200px;*/
+            overflow : hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+        }
+    </style>
+</head>
+<body>
+<div th:insert="~{common/commons.html::newhead}" ></div>
+
+<div class="layui-row" style="padding-top: 50px;background-color: #F2F2F2;height: 100%">
+    <div th:insert="~{common/commons.html::sidebar(active = 'home.html')}"></div>
+    <div class="layui-col-md10" style="height: 50px"></div>
+    <div class="layui-col-md9 layui-col-md-offset1 layui-row">
+        <div class="layui-col-md9 layui-col-md-offset2" >
+            <div>
+                <a th:href="@{/personalpage/{id}(id = ${useridR})}"><img class="layui-circle" style="width: 50px;height: 50px;border-radius: 25px" th:src="@{/images/{img}.jpg(img = ${headimgR})}"></a>
+                <div th:text="${usernameR}" style="display: inline-flex;">用户名</div>
+            </div>
+            <div  style="padding-top:10px;display: inline-flex"><p style="font-size:3px;color: gray;padding-left:10px">userid:</p><p id="useridR" style="color: gray; font-size: 3px;display: inline-flex" th:text="${useridR}"></p></div>
+        </div>
+        <div class="layui-col-md9 layui-col-md-offset2" style="margin-top: 10px">
+
+            <div class="layui-card">
+                <div class="layui-card-body">
+                    <div style="display: inline">
+                        <p th:text="'帖子标题:'+${blogtitle}"></p>
+                        <div style="display: inline-flex">
+                        <p style="font-size: 3px;color: gray">blogid:</p><p id="blogid" th:text="${blogid}"></p>
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <div class="layui-card-body">
+                    <p class="mlines" th:utext="${commencotain}"> 回复内容</p>
+                </div>
+                <div id="replyedit"></div>
+            </div>
+            <a id="replybt" class="layui-btn layui-btn-sm">回复</a>
+        </div>
+        <hr>
+        <div>
+
+        </div>
+
+    </div>
+
+</div>
+<script th:src="@{/layui.js}" charset="utf-8"></script>
+<script type="text/javascript">
+    const E = window.wangEditor
+    const editor = new E('#replyedit')
+    // 或者 const editor = new E( document.getElementById('div1') )
+    editor.config.height=400
+    editor.config.zIndex = 1
+    editor.create()
+    layui.use('element', function(){
+        var element = layui.element;
+    });
+
+    document.getElementById("replybt").addEventListener('click',function () {
+        var contain = editor.txt.html();
+        var useridR = document.getElementById("useridR").innerText;
+        var blogid = document.getElementById("blogid").innerText;
+        console.log("useridR is:"+useridR);
+        console.log("blogid is:"+blogid);
+        var userid = [[${session.id}]];
+        if(contain==''){
+            alert("请输入回复内容");
+        }else {
+            $.ajax({
+                type: "POST",
+                url: "/addcomment",
+                data: {
+                    "toblogid":blogid,
+                    "touserid":useridR,
+                    "userid":userid,
+                    "contain": contain
+                },
+                success: function (data) {
+                    window.location.replace("/home");
+                }
+            })
+        }
+    })
+
+</script>
+</body>
+</html>

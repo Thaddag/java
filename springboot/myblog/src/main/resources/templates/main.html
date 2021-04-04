@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>home</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/layui.css}" media="all">
+    <script th:src="@{/layui.js}"></script>
+    <script type="text/javascript" th:src="@{/jquery-3.5.1.js}"></script>
+    <style>
+        .mlines{
+            /*width: 200px;*/
+            overflow : hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 4;
+            -webkit-box-orient: vertical;
+        }
+        .mline{
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+            margin-left: 20px;
+        }
+        #name,#searchbox,#searchicon{
+            display: flex;
+        }
+    </style>
+</head>
+<body style="background-color: #F2F2F2">
+<!--头部-->
+<div th:insert="~{common/commons.html::newhead(img=${headimg})}" ></div>
+
+<div class="layui-fluid" style="padding-top: 50px">
+    <div class="layui-row">
+        <div class="layui-col-md2">
+            暂空
+        </div>
+        <!--中间博客展示的位置-->
+        <div class="layui-col-md7" >
+            <!--一个博客显示-->
+            <div th:each="bloginfo:${bloginfolist}" th:id="'blog'+${bloginfoStat.index+1}" style="margin-top: 20px" >
+                <div style="height: 120px;background-color: #9F9F9F">
+                    <a th:href="'/blog/'+${bloginfo['blogid']}">
+                        <div class="mline" style="font-size: 30px" th:text="${bloginfo['title']}">
+                            博客标题博客标题博客标题
+                        </div>
+                    </a>
+                    <div>
+                        <div style="display: inline-flex;line-height: 30px;margin-left: 20px">
+                            <a th:href="@{/personalpage/{id}(id = ${session.id})}"><img th:src="@{/images/{imgid}.jpg(imgid = ${bloginfo['userheadimg']})}" style="border-radius: 15px;height: 30px;width: 30px"></a>
+                            <p class="mline" th:text="${bloginfo['username']}">作者作者 </p>
+                            <i style="margin-left: 20px" class="layui-icon layui-icon-time"></i>
+                            <p style="display: table-cell" th:text="${#temporals.format(bloginfo['time'],'yyyy-MM-dd')}">2020-01-01</p>
+                        </div>
+                    </div>
+
+                    <div class="mline" style="margin-top: 20px">
+                        <div style="width: auto;display: inline;" th:each="blogtag:${bloginfo['blogtags']}">
+                            <i class="layui-icon layui-icon-note"></i>
+                            <a th:href="'/tag/'+${blogtag.getTagid}"><span th:text="${blogtag.getTagname}">标签标签标签标签标签</span></a>
+                        </div>
+                    </div>
+
+                </div>
+                <hr>
+            </div>
+            <!--分页栏-->
+            <div id="shortblog"></div>
+
+
+        </div>
+        <!--标签的位置-->
+        <div class="layui-col-md3" style="position: fixed;right: 0px">
+            <div style="background-color: #AEEEEE;border-radius: 20px;margin-top: 50px">
+                <div style="padding-top: 20px;padding-left: 20px;padding-right: 20px;padding-bottom: 20px">
+                    <div th:each="tag:${taglist}" style="width: auto;display: inline;">
+                        <i class="layui-icon layui-icon-note"></i>
+                        <a th:href="'/tag/'+${tag.getTagid}"><span th:text="${tag.getTagname}">标签标签标签标签标签</span></a>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script type="text/javascript">
+    layui.use('element', function(){
+        var element = layui.element; //导航的hover效果、二级菜单等功能，需要依赖element模块
+
+        //监听导航点击
+        element.on('nav(demo)', function(elem){
+            //console.log(elem)
+            layer.msg(elem.text());
+        });
+    });
+    layui.use('laypage', function(){
+        var laypage = layui.laypage;
+
+        //执行一个laypage实例
+        laypage.render({
+            elem: 'shortblog' //注意，这里的 test1 是 ID，不用加 # 号
+            ,count: [[${blogcount}]] //数据总数，从服务端得到
+            ,limit: [[${bloginonepage}]]
+            ,jump: function(obj, first){
+                //obj包含了当前分页的所有参数，比如：
+                //console.log(obj.curr); //得到当前页，以便向服务端请求对应页的数据。
+                //console.log(obj.limit); //得到每页显示的条数
+                topage(1);
+                //首次不执行
+                if(!first){
+                    topage(obj.curr);
+                    //do something
+                }
+            }
+        });
+    });
+    function topage(page){
+        var bloginonepage = [[${bloginonepage}]];
+        var blogcount = [[${blogcount}]];
+        var i =1;
+        for ( ;i<=blogcount;i++){
+            var blogid = "chat"+i;
+            if(i>(page-1)*bloginonepage&&i<=page*bloginonepage){
+                document.getElementById(blogid).style.display = '';
+            }else {
+                document.getElementById(blogid).style.display = 'none';
+            }
+        }
+
+    }
+
+    function search() {
+        var searchtxt = document.getElementById("searchtext");
+        $.ajax({
+            type:"POST",
+            url:"/searchblog",
+            data:{
+                "data":text
+            },
+            success:function ()
+            {console.log(this.success
+            )}
+        })
+    }
+
+    document.getElementById("addblog").addEventListener('click',function () {
+        window.location.replace("/editblog");
+    })
+    function EnterPress(event) {
+        if(event.keyCode === 13){
+        var s = document.getElementById("searchbox").value;
+        window.location.replace("/search/"+s);
+        }
+    }
+</script>
+</body>
+</html>

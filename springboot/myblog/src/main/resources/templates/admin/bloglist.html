@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>博客管理</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/layui.css}" media="all">
+    <script th:src="@{/layui.js}"></script>
+    <script type="text/javascript" th:src="@{/jquery-3.5.1.js}"></script>
+
+</head>
+    <body>
+    <div class="layui-col-md2"th:insert="~{common/commons.html::managesidebar(active = 'blogmanage')}" >
+
+    </div>
+    <div class="layui-container">
+        <div class="layui-col-md8  layui-col-md-offset1">
+            <div class="layui-card">
+                <div class="layui-card-header">
+                    <p>博文管理</p>
+                </div>
+                <div class="layui-card-body">
+                    <table class="layui-table">
+                        <colgroup>
+                            <col width="800">
+                            <col width="200">
+                            <col width="200">
+                            <col width="50">
+                        </colgroup>
+                        <thead>
+                        <tr>
+                            <th>标题</th>
+                            <th>发布人</th>
+                            <th>发布时间</th>
+                            <th>操作</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="blog:${bloglist}" th:id="'blogid'+${blogStat.index+1}">
+                            <td th:text="${blog['blogtitle']}">小刘拿走了刘奶奶的牛奶</td>
+                            <td th:text="${blog['username']}">小王</td>
+                            <td th:text="${#temporals.format(blog['time'],'yyyy-MM-dd')}">2016-11-29</td>
+                            <td><div class="layui-table-cell laytable-cell-2-0-8"> <a class="layui-btn layui-btn-normal layui-btn-xs" lay-event="edit" th:href="@{/admin/manageblog/{blogid}(blogid = ${blog['blogid']})}">查看</a></div></td>
+                        </tr>
+
+                        </tbody>
+                    </table>
+                    <div id="myblogspage"></div>
+                </div>
+                <div id="blogspage"></div>
+            </div>
+        </div>
+    </div>
+    <script>
+        layui.use('laypage', function(){
+            var laypage = layui.laypage;
+
+            //执行一个laypage实例
+            laypage.render({
+                elem: 'myblogspage' //注意，这里的 test1 是 ID，不用加 # 号
+                ,count: [[${blogsize}]] //数据总数，从服务端得到
+                ,limit:[[${bloginonepage}]]
+                ,jump: function(obj, first){
+                    //obj包含了当前分页的所有参数，比如：
+
+                    //console.log(obj.curr); //得到当前页，以便向服务端请求对应页的数据。
+                    //console.log(obj.limit); //得到每页显示的条数
+                    topage(1);
+                    //首次不执行
+                    if(!first){
+                        topage(obj.curr);
+                        //window.location.replace("/blog/"+[[${blogid}]]+"/page/"+obj.curr);
+                        //do something
+                    }
+                }
+            });
+        });
+
+        function topage(page){
+            var bloginonepage = [[${bloginonepage}]];
+            var blogcount = [[${blogsize}]];
+            var i =1;
+            for ( ;i<=blogcount;i++){
+                var blogid = "blogid"+i;
+                if(i>(page-1)*bloginonepage&&i<=page*bloginonepage){
+                    document.getElementById(blogid).style.display = '';
+                }else {
+                    document.getElementById(blogid).style.display = 'none';
+                }
+            }
+
+        }
+    </script>
+    </body>
+</html>

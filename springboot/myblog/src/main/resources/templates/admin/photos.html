@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>photo</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/layui.css}" media="all">
+    <script th:src="@{/layui.js}"></script>
+    <script type="text/javascript" th:src="@{/jquery-3.5.1.js}"></script>
+
+</head>
+<body style="background-color: #F2F2F2">
+<div th:insert="~{common/commons.html::managesidebar(active = 'usermanage')}" ></div>
+<div class="layui-row" style="padding-top: 50px">
+    <div class="layui-col-md9 layui-col-md-offset2">
+        <div class="layui-card">
+            <div class="layui-card-header" style="display: inline-flex">
+                <p th:text="${user.getUsername}"></p> <p> 的相册</p>
+            </div>
+            <div class="layui-card-body" style="display: inline">
+                <div style="display: inline-block;width: 1200px" >
+                    <div th:each="photo:${photolist}" th:id="'photo'+${photoStat.index+1}" style="margin-top: 30px;padding: 20px;display:inline-block;width: auto">
+                        <img id="img" th:src="@{/images/{imgid}.jpg(imgid = ${photo})}" width="200px" >
+                        <a th:onclick="'javascript:delphoto('+${photo}+')' " class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del" style="width: 55px;display: block;margin-top: 10px"><i class="layui-icon layui-icon-delete"></i>删除</a>
+                    </div>
+
+                </div>
+                <div id="photospage"></div>
+            </div>
+            <div class="layui-card-body" style="margin-bottom: 30px">
+                <textarea id="reasonbox" class="layui-textarea" placeholder="请输入删除理由"></textarea>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+
+    layui.use('laypage', function(){
+        var laypage = layui.laypage;
+
+        //执行一个laypage实例
+        laypage.render({
+            elem: 'userspage' //注意，这里的 test1 是 ID，不用加 # 号
+            ,count: [[${photocount}]] //数据总数，从服务端得到
+            ,limit:[[${photoinpnepage}]]
+            ,jump: function(obj, first){
+                //obj包含了当前分页的所有参数，比如：
+
+                //console.log(obj.curr); //得到当前页，以便向服务端请求对应页的数据。
+                //console.log(obj.limit); //得到每页显示的条数
+                topage(1);
+                //首次不执行
+                if(!first){
+                    topage(obj.curr);
+                    //window.location.replace("/blog/"+[[${blogid}]]+"/page/"+obj.curr);
+                    //do something
+                }
+            }
+        });
+        function topage(page){
+            var photoinonepage = [[${photoinpnepage}]];
+            var photocount = [[${photocount}]];
+            var i =1;
+            for ( ;i<=photocount;i++){
+                var photoid = "photo"+i;
+                if(i>(page-1)*photoinonepage&&i<=page*photoinonepage){
+                    document.getElementById(photoid).style.display = 'inline-block';
+                }else {
+                    document.getElementById(photoid).style.display = 'none';
+                }
+            }
+
+        }
+    });
+    function delphoto(obj) {
+        var reason = document.getElementById("reasonbox").value;
+        if(reason == ''){
+            alert("请输入理由");
+        }else {
+            $.ajax({
+                type: "POST",
+                url: "/admin/deluserphoto",
+                data: {
+                    "userid":[[${user.getId}]],
+                    "imgid":obj,
+                    "reason":reason
+                },
+                success: function (data) {
+                    window.location.replace("/admin/photos/"+[[${user.getId}]]);
+                }
+            })
+        }
+    }
+    /*function getFileName(url){
+        var regExp = /(.*\/)*([^.]+).*!/ig;
+        url=url.replace(regExp,"$2");
+        return url;
+    }*/
+</script>
+</body>
+</html>

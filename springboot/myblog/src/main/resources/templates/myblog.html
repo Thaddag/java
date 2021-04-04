@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>myblogs</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/layui.css}" media="all">
+    <script th:src="@{/layui.js}"></script>
+    <script type="text/javascript" th:src="@{/jquery-3.5.1.js}"></script>
+</head>
+<body style="background-color: #F2F2F2">
+<div th:insert="~{common/commons.html::newhead}" ></div>
+<div class="layui-row" style="padding-top: 50px">
+    <div th:insert="~{common/commons.html::sidebar(active = 'myblog')}"></div>
+    <div class="layui-col-md8 layui-col-md-offset2" style="padding-top: 50px">
+        <div class="layui-card">
+            <div class="layui-card-header">
+                <p>我的博文</p>
+            </div>
+            <div class="layui-card-body">
+                <table class="layui-table">
+                    <colgroup>
+                        <col width="50">
+                        <col width="300">
+                        <col width="200">
+                        <col width="50">
+                        <col width="50">
+                    </colgroup>
+                    <thead>
+                    <tr>
+                        <th>id</th>
+                        <th>标题</th>
+                        <th>发布时间</th>
+                        <th>是否置顶</th>
+                        <th>操作</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="blog:${bloglist}" th:id="'blog'+${blogStat.index+1}">
+                        <td th:text="${blog.getBlogid}"></td>
+                        <td ><a th:text="${blog.getTitle}" th:href="@{/blog/{id}(id = ${blog.getBlogid})}">小刘拿走了刘奶奶的牛奶</a></td>
+                        <td th:text="${blog.getTime}">2016-11-29</td>
+                        <td><input onclick="changetop(this)" type="checkbox" th:checked="${blog.getTop} eq 1" lay-skin="switch"></td>
+                        <td><div class="layui-table-cell laytable-cell-2-0-8"> <a onclick="editblog(this)" class="layui-btn layui-btn-normal layui-btn-xs" lay-event="edit"><i class="layui-icon layui-icon-edit"></i>编辑</a>  <a onclick="delblog(this)" class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del"><i class="layui-icon layui-icon-delete"></i>删除</a>  </div></td>
+                    </tr>
+
+                    </tbody>
+                    <div id="myblogspage"></div>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    layui.use('element', function(){
+        var element = layui.element;
+    });
+    layui.use('laypage', function(){
+        var laypage = layui.laypage;
+
+        //执行一个laypage实例
+        laypage.render({
+            elem: 'myblogspage' //注意，这里的 test1 是 ID，不用加 # 号
+            ,count: [[${blogsize}]] //数据总数，从服务端得到
+            ,limit:[[${bloginonepage}]]
+            ,jump: function(obj, first){
+                //obj包含了当前分页的所有参数，比如：
+
+                //console.log(obj.curr); //得到当前页，以便向服务端请求对应页的数据。
+                //console.log(obj.limit); //得到每页显示的条数
+                topage(1);
+                //首次不执行
+                if(!first){
+                    topage(obj.curr);
+                    //window.location.replace("/blog/"+[[${blogid}]]+"/page/"+obj.curr);
+                    //do something
+                }
+            }
+        });
+    });
+
+    function topage(page){
+        var bloginonepage = [[${bloginonepage}]];
+        var blogcount = [[${blogsize}]];
+        var i =1;
+        for ( ;i<=blogcount;i++){
+            var blogid = "blog"+i;
+            if(i>(page-1)*bloginonepage&&i<=page*bloginonepage){
+                document.getElementById(blogid).style.display = '';
+            }else {
+                document.getElementById(blogid).style.display = 'none';
+            }
+        }
+
+    }
+    function editblog(obj){
+        var blogid = $(obj).parent().parent().parent().children("td").eq(0).text();
+        window.location.replace("/editblog/"+blogid);
+    }
+    function delblog(obj){
+        var blogid = $(obj).parent().parent().parent().children("td").eq(0).text();
+        console.log(blogid);
+        if(confirm("删除会使博文下的所有评论删除。\n确定删除吗？")){
+            $.ajax({
+                type: "GET",
+                url: "/delblog/"+blogid,
+                data: {
+                },
+                success: function (data) {
+                    window.location.replace("/myblog");
+                }
+            })
+            //window.location.replace("/delblog/"+blogid);
+            //alert("继续");
+        }else{
+
+            //alert("再见");
+        }
+    }
+    function changetop(obj) {
+        var blogid = $(obj).parent().parent().children("td").eq(0).text();
+        console.log(blogid);
+        if(obj.checked == true){
+            $.ajax({
+                type: "POST",
+                url: "/changetopstat",
+                data: {
+                    "blogid":blogid,
+                    "top":1
+                },
+                success: function (data) {
+
+                }
+            })
+        }else {
+            $.ajax({
+                type: "POST",
+                url: "/changetopstat",
+                data: {
+                    "blogid":blogid,
+                    "top":0
+                },
+                success: function (data) {
+
+                }
+            })
+
+        }
+
+    }
+</script>
+</body>
+</html>
